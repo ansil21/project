@@ -8,24 +8,21 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 9000;
+const PORT = process.env.PORT || 9000;
 
-const connectionUri = process.env.DB_CONNECTION_URI;
+
 
 // Connect to MongoDB
 
-mongoose.connect(connectionUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('Connected to MongoDB Atlas');
-  app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
-  });
-}).catch((error) => {
-  console.error('Error connecting to MongoDB Atlas:', error);
-});
-
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.DB_CONNECTION_URI);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
+}
 // Middleware
 app.use(bodyParser.json());
 app.use(cors());
@@ -61,3 +58,9 @@ app.post('/search', async (req, res) => {
 
   res.render('results', { data, page, perPage, depth });
 });
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
+      console.log("listening for requests");
+  })
+})
